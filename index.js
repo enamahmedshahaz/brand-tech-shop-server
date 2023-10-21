@@ -31,6 +31,8 @@ async function run() {
 
     const database = client.db("brandShopDB");
     const productCollection = database.collection("products");
+    const cart = database.collection("cart");
+
 
     //API to get multiple products based on brand Name
     app.get("/products/brands/:brandName", async (req, res) => {
@@ -44,7 +46,6 @@ async function run() {
 
     //API to get a single products based on product ID
     app.get("/products/:id", async (req, res) => {
-      console.log('Inside: /products/:id"');
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await productCollection.findOne(query);
@@ -91,10 +92,44 @@ async function run() {
 
       // Update the first document that matches the filter
       const result = await productCollection.updateOne(filter, updateProduct, options);
-     
       res.send(result);
 
     });
+
+
+    //API to add a product to cart
+    app.post("/cart", async (req, res) => {
+      const cartProduct = req.body;
+
+      const id = cartProduct._id;
+      const query = { _id: id };
+      const findResult = await cart.findOne(query);
+      console.log('findrest: ', findResult, query);
+
+
+      if (findResult) {
+        const newQty = findResult.qty + 1;
+        const filter = { _id: new ObjectId(id) };
+        const options = { upsert: false };
+        const updateProduct = {
+          $set: {
+            qty: newQty,
+          },
+        };
+
+        const result = await productCollection.updateOne(filter, updateProduct, options);
+        res.send(result);
+
+      } else {
+        cartProduct.qty = 1;
+        const result = await cart.insertOne(cartProduct);
+        res.send(result);
+      }
+
+    });
+
+
+
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
