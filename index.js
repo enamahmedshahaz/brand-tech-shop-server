@@ -32,6 +32,17 @@ async function run() {
     const database = client.db("brandShopDB");
     const productCollection = database.collection("products");
 
+    //API to get multiple products
+    app.get("/products/:brandName", async (req, res) => {
+      const brandName = req.params.brandName;
+      const query = { brandName: brandName };
+      console.log('BrandName:', brandName);
+      const cursor = productCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
+
     //API to add product
     app.post("/products", async (req, res) => {
       const newProduct = req.body;
