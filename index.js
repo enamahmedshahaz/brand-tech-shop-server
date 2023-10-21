@@ -60,6 +60,42 @@ async function run() {
       res.send(result);
     });
 
+    //API to update a product
+    app.put("/products/:id", async (req, res) => {
+      const id = req.params.id;
+
+      const product = req.body;
+
+      // Create a filter for product  with the id 
+      const filter = { _id: new ObjectId(id) };
+
+      /* Set the upsert option to insert a document 
+      if no documents match the filter */
+
+      /* if set to false : If no documents match the filter criteria,
+       the method does not perform any update operation  */
+      const options = { upsert: true };
+
+      // Specify the updated values for the fields 
+      const updateProduct = {
+        $set: {
+          name: product.name,
+          brandName: product.brandName,
+          type: product.type,
+          price: product.price,
+          image: product.image,
+          rating: product.rating,
+          description: product.description
+        },
+      };
+
+      // Update the first document that matches the filter
+      const result = await productCollection.updateOne(filter, updateProduct, options);
+     
+      res.send(result);
+
+    });
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
