@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config()
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 
 const port = process.env.PORT || 5000;
@@ -32,13 +32,22 @@ async function run() {
     const database = client.db("brandShopDB");
     const productCollection = database.collection("products");
 
-    //API to get multiple products
-    app.get("/products/:brandName", async (req, res) => {
+    //API to get multiple products based on brand Name
+    app.get("/products/brands/:brandName", async (req, res) => {
+      console.log('Inside: /products/brands/:brandName"');
       const brandName = req.params.brandName;
       const query = { brandName: brandName };
-      console.log('BrandName:', brandName);
       const cursor = productCollection.find(query);
       const result = await cursor.toArray();
+      res.send(result);
+    });
+
+    //API to get a single products based on product ID
+    app.get("/products/:id", async (req, res) => {
+      console.log('Inside: /products/:id"');
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await productCollection.findOne(query);
       res.send(result);
     });
 
