@@ -100,7 +100,7 @@ async function run() {
     app.post("/cart", async (req, res) => {
 
       const cartProduct = req.body;
-      
+
       //find if product already in the cart
       const query = { _id: new ObjectId(cartProduct._id) };
       const foundProductInCart = await cart.findOne(query);
@@ -127,6 +127,13 @@ async function run() {
         res.send(result);
       }
 
+    });
+
+    //API to view all products in the cart 
+    app.get("/cart", async (req, res) => {
+      const cursor = cart.find();
+      const result = await cursor.toArray();
+      res.send(result);
     });
 
 
