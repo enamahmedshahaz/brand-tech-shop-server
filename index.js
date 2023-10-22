@@ -36,7 +36,6 @@ async function run() {
 
     //API to get multiple products based on brand Name
     app.get("/products/brands/:brandName", async (req, res) => {
-      console.log('Inside: /products/brands/:brandName"');
       const brandName = req.params.brandName;
       const query = { brandName: brandName };
       const cursor = productCollection.find(query);
@@ -99,36 +98,36 @@ async function run() {
 
     //API to add a product to cart
     app.post("/cart", async (req, res) => {
+
       const cartProduct = req.body;
+      
+      //find if product already in the cart
+      const query = { _id: new ObjectId(cartProduct._id) };
+      const foundProductInCart = await cart.findOne(query);
 
-      const id = cartProduct._id;
-      const query = { _id: id };
-      const findResult = await cart.findOne(query);
-      console.log('findrest: ', findResult, query);
-
-
-      if (findResult) {
-        const newQty = findResult.qty + 1;
-        const filter = { _id: new ObjectId(id) };
+      //if already in the cart, update quantity (+1) of the item
+      if (foundProductInCart) {
+        const filter = { _id: new ObjectId(cartProduct._id) };
         const options = { upsert: false };
-        const updateProduct = {
+        const updatedCartProduct = {
           $set: {
-            qty: newQty,
+            quantity: foundProductInCart.quantity + 1,
           },
         };
-
-        const result = await productCollection.updateOne(filter, updateProduct, options);
+        const result = await cart.updateOne(filter, updatedCartProduct, options);
         res.send(result);
 
-      } else {
-        cartProduct.qty = 1;
+      }
+      //if new item in cart, add property quantity: 1 and insert into cart
+
+      else {
+        cartProduct.quantity = 1;
+        cartProduct._id = new ObjectId(cartProduct._id);
         const result = await cart.insertOne(cartProduct);
         res.send(result);
       }
 
     });
-
-
 
 
     // Send a ping to confirm a successful connection
