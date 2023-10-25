@@ -30,9 +30,16 @@ async function run() {
     await client.connect();
 
     const database = client.db("brandShopDB");
+    const brandCollection = database.collection("brands");
     const productCollection = database.collection("products");
     const cart = database.collection("cart");
 
+    //API to get all Brands
+    app.get("/brands", async (req, res) => {
+      const cursor = brandCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    });
 
     //API to get multiple products based on brand Name
     app.get("/products/brands/:brandName", async (req, res) => {
